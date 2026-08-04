@@ -1,0 +1,7 @@
+Domain,Section,Component,Feature,Title,Precondition,Procedure,Expected,Priority,iOS,iOS Actual,iOS Ticket,AOS,AOS Actual,AOS Ticket,Web,Web Actual,Web Ticket
+Wallet,Withdrawal,Limit Banner,출금 한도 알림,한도 90% 도달 시 배너 노출,누적 출금액이 한도의 89%,추가 출금으로 90% 도달,경고 배너 노출,High,Pass,,,Pass,,,Pass,,
+Wallet,Withdrawal,Limit Banner,출금 한도 알림,한도 100% 초과 시 버튼 비활성화,누적 출금액이 한도의 100%,출금 화면 진입,출금 버튼 비활성화 및 다이얼로그 노출,High,Fail,버튼이 비활성화되지 않고 출금이 정상 진행됨,,Pass,,,Pass,,
+Wallet,Withdrawal,Reset,자정 기준 초기화,자정 경과 시 누적액 초기화,전일 95% 사용 상태로 자정 도래,자정 경과 후 새로고침,누적액 0으로 초기화,Medium,Pass,,,Fail,자정이 지나도 전일 누적액이 남아있음,,Pass,,
+Trading,Order,Duplicate Submit,중복 주문 방지,확인 버튼 연속 탭 시 중복 주문 방지,주문 확인 다이얼로그 노출 상태,확인 버튼 빠르게 2회 탭,주문 1건만 전송,Critical,Fail,확인 버튼 연속 탭 시 주문이 2건 전송되어 잔액이 이중 차감됨,,Fail,동일 현상 재현됨 (재현율 6/10),,Pass,,
+KYC,Verification,Tier Upgrade,KYC 등급 반영,등급 상향 시 한도 즉시 갱신,Lv.1 사용자가 한도 95% 사용,KYC Lv.2로 승인,새 한도 기준으로 즉시 갱신,High,Pass,,,Pass,,,Fail,등급 승인 후에도 이전 한도로 배너가 표시됨,
+Notification,Push,Deep Link,알림 딥링크 이동,푸시 탭 시 해당 화면으로 이동,푸시 알림 수신 상태,알림 탭,관련 상세 화면으로 이동,Medium,Pass,,,Pass,,,Pass,,
