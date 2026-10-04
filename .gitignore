@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+.pytest_cache/
 
 # 파이프라인 실행 시 생성/갱신되는 산출물.
 # data/mock_test_sheet.csv는 "살아있는 시트"라 실행할 때마다 계속 바뀌므로

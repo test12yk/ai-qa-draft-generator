@@ -112,6 +112,15 @@ python src/generate_issue_draft.py --input examples/sample_bug_report.md
 
 `examples/` 폴더에는 API 키 없이도 결과물의 형태를 바로 확인할 수 있도록 입력/출력 예시를 함께 넣어두었습니다.
 
+## 테스트
+
+LLM/Jira/Sheets를 전혀 호출하지 않고(mock만 사용) 핵심 로직(`MockJiraClient`, 양방향 동기화, template fallback 등)을 검증하는 pytest 테스트가 `tests/`에 있습니다. API 키 없이도 실행됩니다.
+
+```bash
+pip install -r requirements.txt
+pytest
+```
+
 ## 실제 업무 적용 시 확인된 효과 (참고)
 
 동일한 컨셉을 실무 워크플로우에 적용했을 때 기준으로,
