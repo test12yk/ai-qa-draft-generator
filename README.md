@@ -19,19 +19,19 @@ QA 엔지니어가 매번 반복하는 두 가지 작업이 있습니다.
 |---|---|---|
 | `src/generate_test_cases.py` | 기능 요구사항/스펙 텍스트 | 구조화된 테스트케이스 초안 (Given/When/Then, 우선순위, 대상 플랫폼 포함) |
 | `src/generate_issue_draft.py` | 버그 재현 메모, 로그, 스크린샷 설명 등 | 이슈 제목, 재현 절차, 기대/실제 결과, 환경 정보, 우선순위 제안이 담긴 이슈 초안 |
-| `src/run_pipeline.py` | 테스트 결과가 정리된 시트(CSV, 실제 Google Sheet에 해당) | Fail 건에 대해 이슈 초안을 생성하고, mock Jira에 티켓까지 자동 생성. 이전에 Resolved된 티켓이 있으면 그 상태를 시트에 먼저 반영 (양방향 동기화, end-to-end 데모) |
+| `src/run_pipeline.py` | 테스트 결과가 정리된 시트 (CSV 기반 Mock Sheet — 실제 Google Sheets API 연동이 아니라, Google Sheet를 흉내낸 로컬 CSV) | Fail 건에 대해 이슈 초안을 생성하고, Mock Jira에 티켓까지 자동 생성. 이전에 Resolved된 티켓이 있으면 그 상태를 시트에 먼저 반영 (양방향 동기화, end-to-end 데모) |
 | `src/resolve_ticket.py` | 티켓 키 (예: QA-1001) | 개발자가 Jira에서 티켓을 Resolved로 바꾸는 상황을 흉내내는 CLI |
 
 앞의 두 스크립트가 "초안 생성" 하나만 보여주는 단위 데모라면, `run_pipeline.py`는 실제 QA 자동화 워크플로우를 양방향으로 재현한 버전입니다.
 
-- **시트 → BTS**: 시트에서 Fail 감지 → 이슈 초안 작성 → 티켓 생성 → 시트에 티켓 번호 기록
-- **BTS → 시트**: (개발자가 `resolve_ticket.py`로 티켓을 Resolved 처리하면) 다음 `run_pipeline.py` 실행 시 그 상태를 감지해서 시트의 티켓 칸에 반영
+- **시트 → Mock Jira**: 시트에서 Fail 감지 → 이슈 초안 작성 → Mock Jira 티켓 생성 → 시트에 티켓 번호 기록
+- **Mock Jira → 시트**: (개발자가 `resolve_ticket.py`로 티켓을 Resolved 처리하면) 다음 `run_pipeline.py` 실행 시 그 상태를 감지해서 시트의 티켓 칸에 반영
 
 실제 서비스라면 두 번째 방향은 Jira 웹훅 수신이나 주기적 polling으로 처리되는데, 이 데모에서는 `run_pipeline.py`를 실행하는 시점에 상태를 조회해서 반영하는 방식(polling과 동일한 개념)으로 재현했습니다. 실제 Jira 계정이 없어도 로컬 mock 클라이언트로 전체 흐름을 그대로 체험할 수 있습니다.
 
-`data/mock_test_sheet.csv`는 **실제 Google Sheet와 동일하게, 유일한 하나의 파일을 계속 읽고 그 자리에 다시 씁니다** (별도의 "결과 파일"을 만들지 않습니다). 이 파일은 실행할수록 계속 바뀌므로 git에는 커밋하지 않고, 대신 절대 바뀌지 않는 `data/mock_test_sheet_seed.csv`(최초 데모 데이터)를 커밋해두었습니다 — 최초 실행 시 이 파일에서 시트가 자동으로 만들어지고, `--reset` 옵션으로 언제든 티켓 이력까지 지우고 처음 상태로 되돌릴 수 있습니다.
+`data/mock_test_sheet.csv`는 **CSV 기반 Mock Sheet**로, 실제 Google Sheets API를 호출하지 않습니다. 다만 동작 방식은 Google Sheet와 동일하게, 유일한 하나의 파일을 계속 읽고 그 자리에 다시 씁니다 (별도의 "결과 파일"을 만들지 않습니다). 이 파일은 실행할수록 계속 바뀌므로 git에는 커밋하지 않고, 대신 절대 바뀌지 않는 `data/mock_test_sheet_seed.csv`(최초 데모 데이터)를 커밋해두었습니다 — 최초 실행 시 이 파일에서 시트가 자동으로 만들어지고, `--reset` 옵션으로 언제든 티켓 이력까지 지우고 처음 상태로 되돌릴 수 있습니다.
 
-모든 스크립트는 **초안/티켓까지만 생성**하며, 실제 서비스 반영이나 최종 판단은 QA 엔지니어의 검토를 거치는 것을 전제로 설계했습니다. (실제 영향도·비즈니스 맥락은 사람이 판단해야 하는 영역이라고 생각해서, 자동 등록이 아니라 "초안 생성 → 사람 검토 → 등록"의 흐름을 유지했습니다.)
+모든 스크립트는 **초안 생성 및 Mock Jira 티켓 생성까지 자동화**하며, 실제 서비스의 영향도·비즈니스 맥락에 대한 최종 판단은 QA 엔지니어가 수행하는 것을 전제로 설계했습니다. 실제 업무에서는 AI가 생성한 결과를 QA가 검토·수정한 후 최종 등록하는 Workflow를 전제로 하며, 이 프로젝트에서는 그 등록 단계를 Mock Jira 티켓 생성으로 재현했습니다.
 
 ## 폴더 구조
 
@@ -47,7 +47,7 @@ ai-qa-draft-generator/
 │   ├── generate_issue_draft.py # 이슈 초안 생성 CLI
 │   ├── mock_jira_client.py     # 실제 Jira API 대신 로컬에 티켓을 생성·상태 관리하는 mock 클라이언트
 │   ├── resolve_ticket.py       # 개발자가 티켓을 Resolved로 바꾸는 상황을 흉내내는 CLI
-│   └── run_pipeline.py         # 시트 <-> BTS 양방향 동기화 end-to-end 데모
+│   └── run_pipeline.py         # 시트 <-> Mock Jira 양방향 동기화 end-to-end 데모
 ├── data/
 │   └── mock_test_sheet_seed.csv  # 최초 데모 데이터 (git 추적됨, 파이프라인이 절대 수정 안 함)
 │                                   # mock_test_sheet.csv는 최초 실행 시 여기서 자동 생성되는
@@ -85,7 +85,7 @@ cp .env.example .env   # 키 입력 후
 python src/run_pipeline.py
 ```
 
-**양방향 동기화(BTS → 시트)를 체험하려면**: 위 실행으로 티켓이 생성된 뒤, 개발자가 그중 하나를 고쳤다고 가정하고 Resolved로 바꿔보세요.
+**양방향 동기화(Mock Jira → 시트)를 체험하려면**: 위 실행으로 티켓이 생성된 뒤, 개발자가 그중 하나를 고쳤다고 가정하고 Resolved로 바꿔보세요.
 
 ```bash
 python src/resolve_ticket.py QA-1001 --note "디바운스 로직 추가로 수정 완료"
@@ -114,11 +114,17 @@ python src/generate_issue_draft.py --input examples/sample_bug_report.md
 
 ## 테스트
 
-LLM/Jira/Sheets를 전혀 호출하지 않고(mock만 사용) 핵심 로직(`MockJiraClient`, 양방향 동기화, template fallback 등)을 검증하는 pytest 테스트가 `tests/`에 있습니다. API 키 없이도 실행됩니다.
+LLM/Mock Jira/Mock Sheet를 실제로 호출하지 않고 핵심 로직(`MockJiraClient`, 양방향 동기화, template fallback 등)을 검증하는 pytest 테스트가 `tests/`에 있습니다. API 키 없이도 실행됩니다.
 
 ```bash
 pip install -r requirements.txt
 pytest
+```
+
+현재 23개 테스트가 있으며, 전체 테스트가 통과하는 것을 확인했습니다.
+
+```
+23 passed in 0.02s
 ```
 
 ## 실제 업무 적용 시 확인된 효과 (참고)
